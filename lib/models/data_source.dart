@@ -11,4 +11,8 @@ class DataSource {
   final String? package;
 
   DataSource(this.dataSourceType, this.uri, this.formatHint, this.httpHeaders, this.asset, this.package);
+
+  DataSourceType getSourceType() {
+    return dataSourceType;
+  }
 }

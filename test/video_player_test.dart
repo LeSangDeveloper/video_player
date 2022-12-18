@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_player/messages.g.dart';
+import 'package:video_player/models/data_source.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_player/video_player_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -21,70 +22,71 @@ class MockVideoPlayerPlatform
   }
 
   @override
-  Future<TextureMessage> create(CreateMessage arg_msg) {
+  Future<int?> create(DataSource dataSource) {
     // TODO: implement create
     throw UnimplementedError();
   }
 
   @override
-  Future<void> dispose(TextureMessage arg_msg) {
+  Future<void> dispose(int textureId) {
     // TODO: implement dispose
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> getFrame(PositionMessage arg_msg) {
+  Future<Uint8List> getFrame(int textureId, Duration position) {
     // TODO: implement getFrame
     throw UnimplementedError();
   }
 
   @override
-  Future<void> pause(TextureMessage arg_msg) {
+  Future<Duration> getPosition(int textureId) {
+    // TODO: implement getPosition
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> pause(int textureId) {
     // TODO: implement pause
     throw UnimplementedError();
   }
 
   @override
-  Future<void> play(TextureMessage arg_msg) {
+  Future<void> play(int textureId) {
     // TODO: implement play
     throw UnimplementedError();
   }
 
   @override
-  Future<PositionMessage> position(TextureMessage arg_msg) {
-    // TODO: implement position
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> seekTo(PositionMessage arg_msg) {
+  Future<void> seekTo(int textureId, Duration position) {
     // TODO: implement seekTo
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setLooping(LoopingMessage arg_msg) {
+  Future<void> setLooping(int textureId, bool looping) {
     // TODO: implement setLooping
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setMixWithOthers(MixWithOthersMessage arg_msg) {
+  Future<void> setMixWithOthers(bool mixWithOthers) {
     // TODO: implement setMixWithOthers
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setPlaybackSpeed(PlaybackSpeedMessage arg_msg) {
+  Future<void> setPlaybackSpeed(int textureId, double speed) {
     // TODO: implement setPlaybackSpeed
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setVolume(VolumeMessage arg_msg) {
+  Future<void> setVolume(int textureId, double volume) {
     // TODO: implement setVolume
     throw UnimplementedError();
   }
+
 }
 
 void main() {

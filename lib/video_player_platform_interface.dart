@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:video_player/models/data_source.dart';
 import 'package:video_player/pigeon_video_player.dart';
 
 import 'messages.g.dart';
@@ -31,47 +32,47 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  Future<TextureMessage> create(CreateMessage arg_msg) async {
+  Future<int?> create(DataSource dataSource) async {
     throw UnimplementedError('create() has not been implemented.');
   }
 
-  Future<void> dispose(TextureMessage arg_msg) async {
+  Future<void> dispose(int textureId) async {
     throw UnimplementedError('dispose() has not been implemented.');
   }
 
-  Future<void> setLooping(LoopingMessage arg_msg) async {
+  Future<void> setLooping(int textureId, bool looping) async {
     throw UnimplementedError('setLooping() has not been implemented.');
   }
 
-  Future<void> setVolume(VolumeMessage arg_msg) async {
+  Future<void> setVolume(int textureId, double volume) async {
     throw UnimplementedError('setVolume() has not been implemented.');
   }
 
-  Future<void> setPlaybackSpeed(PlaybackSpeedMessage arg_msg) async {
+  Future<void> setPlaybackSpeed(int textureId, double speed) async {
     throw UnimplementedError('setPlaybackSpeed() has not been implemented.');
   }
 
-  Future<void> play(TextureMessage arg_msg) async {
+  Future<void> play(int textureId) async {
     throw UnimplementedError('play() has not been implemented.');
   }
 
-  Future<PositionMessage> position(TextureMessage arg_msg) async {
+  Future<Duration> getPosition(int textureId) async {
     throw UnimplementedError('setPlaybackSpeed() has not been implemented.');
   }
 
-  Future<Uint8List> getFrame(PositionMessage arg_msg) async {
+  Future<Uint8List> getFrame(int textureId, Duration position) async {
     throw UnimplementedError('getFrame() has not been implemented.');
   }
 
-  Future<void> seekTo(PositionMessage arg_msg) async {
+  Future<void> seekTo(int textureId, Duration position) async {
     throw UnimplementedError('seekTo() has not been implemented.');
   }
 
-  Future<void> pause(TextureMessage arg_msg) async {
+  Future<void> pause(int textureId) async {
     throw UnimplementedError('pause() has not been implemented.');
   }
 
-  Future<void> setMixWithOthers(MixWithOthersMessage arg_msg) async {
+  Future<void> setMixWithOthers(bool mixWithOthers) async {
     throw UnimplementedError('setMixWithOthers() has not been implemented.');;
   }
 
