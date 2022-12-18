@@ -1,12 +1,16 @@
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/messages.g.dart';
 import 'package:video_player/models/data_source.dart';
 import 'package:video_player/video_player_platform_interface.dart';
 
 import 'enums/data_souce_type.dart';
+import 'enums/video_event_type.dart';
 import 'enums/video_format.dart';
+import 'models/duration_range.dart';
+import 'models/video_event.dart';
 
 class PigeonVideoPlayer extends VideoPlayerPlatform {
   final VideoPlayerApi _api = VideoPlayerApi();
@@ -129,6 +133,54 @@ class PigeonVideoPlayer extends VideoPlayerPlatform {
   @override
   Widget buildView(int textureId) {
     return Texture(textureId: textureId);
+  }
+
+  EventChannel _eventChannelFor(int textureId) {
+    return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
+  }
+
+  @override
+  Stream<VideoEvent> videoEventsFor(int textureId) {
+    return _eventChannelFor(textureId)
+        .receiveBroadcastStream()
+        .map((dynamic event) {
+      final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
+      switch (map['event']) {
+        case 'initialized':
+          return VideoEvent(
+            eventType: VideoEventType.initialized,
+            duration: Duration(milliseconds: map['duration'] as int),
+            size: Size((map['width'] as num?)?.toDouble() ?? 0.0,
+                (map['height'] as num?)?.toDouble() ?? 0.0),
+            rotationCorrection: map['rotationCorrection'] as int? ?? 0,
+          );
+        case 'completed':
+          return VideoEvent(
+            eventType: VideoEventType.completed,
+          );
+        case 'bufferingUpdate':
+          final List<dynamic> values = map['values'] as List<dynamic>;
+
+          return VideoEvent(
+            buffered: values.map<DurationRange>(_toDurationRange).toList(),
+            eventType: VideoEventType.bufferingUpdate,
+          );
+        case 'bufferingStart':
+          return VideoEvent(eventType: VideoEventType.bufferingStart);
+        case 'bufferingEnd':
+          return VideoEvent(eventType: VideoEventType.bufferingEnd);
+        default:
+          return VideoEvent(eventType: VideoEventType.unknown);
+      }
+    });
+  }
+
+  DurationRange _toDurationRange(dynamic value) {
+    final List<dynamic> pair = value as List<dynamic>;
+    return DurationRange(
+      Duration(milliseconds: pair[0] as int),
+      Duration(milliseconds: pair[1] as int),
+    );
   }
 
 }

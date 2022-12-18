@@ -3,16 +3,23 @@ import 'package:video_player/enums/video_format.dart';
 
 class DataSource {
 
-  final DataSourceType dataSourceType;
+  final DataSourceType sourceType;
   final String? uri;
   final VideoFormat? formatHint;
   final Map<String, String> httpHeaders;
   final String? asset;
   final String? package;
 
-  DataSource(this.dataSourceType, this.uri, this.formatHint, this.httpHeaders, this.asset, this.package);
+  DataSource({
+    required this.sourceType,
+    this.uri,
+    this.formatHint,
+    this.httpHeaders = const <String, String>{},
+    this.asset,
+    this.package
+  });
 
   DataSourceType getSourceType() {
-    return dataSourceType;
+    return sourceType;
   }
 }

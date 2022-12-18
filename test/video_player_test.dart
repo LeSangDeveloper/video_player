@@ -2,9 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:video_player/messages.g.dart';
 import 'package:video_player/models/data_source.dart';
-import 'package:video_player/video_player.dart';
+import 'package:video_player/models/video_event.dart';
 import 'package:video_player/video_player_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -84,6 +83,12 @@ class MockVideoPlayerPlatform
   @override
   Future<void> setVolume(int textureId, double volume) {
     // TODO: implement setVolume
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<VideoEvent> videoEventsFor(int textureId) {
+    // TODO: implement videoEventsFor
     throw UnimplementedError();
   }
 

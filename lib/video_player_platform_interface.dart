@@ -6,6 +6,7 @@ import 'package:video_player/models/data_source.dart';
 import 'package:video_player/pigeon_video_player.dart';
 
 import 'messages.g.dart';
+import 'models/video_event.dart';
 
 abstract class VideoPlayerPlatform extends PlatformInterface {
   /// Constructs a VideoPlayerPlatform.
@@ -79,6 +80,10 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   /// Returns a widget displaying the video with a given textureID.
   Widget buildView(int textureId) {
     throw UnimplementedError('buildView() has not been implemented.');
+  }
+
+  Stream<VideoEvent> videoEventsFor(int textureId) {
+    throw UnimplementedError('videoEventsFor() has not been implemented.');
   }
 
 }
