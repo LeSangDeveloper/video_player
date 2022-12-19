@@ -8,16 +8,41 @@ import io.flutter.FlutterInjector;
 import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.BinaryMessenger;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.view.TextureRegistry;
 
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Player.Listener;
+import com.google.android.exoplayer2.audio.AudioAttributes;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.source.dash.DashMediaSource;
+import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.util.Util;
+
+import java.util.Map;
+
 /** VideoPlayerPlugin */
 public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPlayerApi {
   private FlutterState flutterState;
   private final static String TAG = "VideoPlayerPlugin";
+  private VideoPlayerOptions options = new VideoPlayerOptions();
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -48,8 +73,27 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
 
   @NonNull
   @Override
-  public Messages.TextureMessage create(@NonNull Messages.CreateMessage msg) {
-    return null;
+  public Messages.TextureMessage create(@NonNull Messages.CreateMessage arg) {
+    TextureRegistry.SurfaceTextureEntry handle =
+            flutterState.textureRegistry.createSurfaceTexture();
+    EventChannel eventChannel =
+            new EventChannel(
+                    flutterState.binaryMessenger, "flutter.io/videoPlayer/videoEvents" + handle.id());
+
+    // TODO remove test later
+    Map<String, String> httpHeaders = arg.getHttpHeaders();
+    VideoPlayer player =
+            new VideoPlayer(
+                    flutterState.applicationContext,
+                    eventChannel,
+                    handle,
+                    arg.getUri(),
+                    arg.getFormatHint(),
+                    httpHeaders,
+                    options);
+
+    Messages.TextureMessage textureMessage = new Messages.TextureMessage.Builder().setTextureId(handle.id()).build();
+    return textureMessage;
   }
 
   @Override

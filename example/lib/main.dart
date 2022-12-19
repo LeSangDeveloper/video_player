@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_player/video_player_controller.dart';
 
 void main() {
   runApp(const MyApp());
@@ -46,6 +48,13 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+
+    VideoPlayerController controller = VideoPlayerController.network("dataSource")..initializeAsync().then((_) {
+      setState(() {});
+    });
+
+    VideoPlayer player = VideoPlayer(controller);
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(

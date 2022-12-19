@@ -9,7 +9,7 @@ import 'package:video_player/models/video_event.dart';
 import 'package:video_player/video_player_platform_interface.dart';
 
 import 'enums/video_event_type.dart';
-import 'models/VideoPlayerOptions.dart';
+import 'models/video_player_options.dart';
 import 'models/video_player_value.dart';
 
 class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
@@ -83,7 +83,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
     }
     _lifeCycleObserver?.initialize();
-    await VideoPlayerPlatform.instance.setMixWithOthers(videoPlayerOptions!.mixWithOthers);
+
+    if (videoPlayerOptions?.mixWithOthers != null) {
+      await VideoPlayerPlatform.instance.setMixWithOthers(videoPlayerOptions!.mixWithOthers);
+    }
+
     _textureId = (await VideoPlayerPlatform.instance.create(dataSourceDescription)) ?? kUninitializedTextureId;
     _creatingCompleter?.complete(null);
 
