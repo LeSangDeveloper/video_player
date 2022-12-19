@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:video_player/video_player_controller.dart';
+import 'dart:math' as math;
+
+import 'package:video_player/video_player_platform_interface.dart';
 
 class VideoPlayer extends StatefulWidget {
   const VideoPlayer(this.controller, {Key? key}) : super(key: key);
@@ -48,6 +51,27 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return _textureId == VideoPlayerController.kUninitializedTextureId
+        ? Container()
+        : _VideoPlayerWithRotation(
+      rotation: widget.controller.value.rotationCorrection,
+      child: VideoPlayerPlatform.instance.buildView(_textureId),
+    );
   }
+}
+
+class _VideoPlayerWithRotation extends StatelessWidget {
+  const _VideoPlayerWithRotation(
+      {Key? key, required this.rotation, required this.child})
+      : super(key: key);
+  final int rotation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => rotation == 0
+      ? child
+      : Transform.rotate(
+    angle: rotation * math.pi / 180,
+    child: child,
+  );
 }
