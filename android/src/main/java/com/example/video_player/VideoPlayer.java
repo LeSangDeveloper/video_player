@@ -129,6 +129,11 @@ public class VideoPlayer {
         exoPlayer.setPlaybackParameters(playbackParameters);
     }
 
+    void setVolume(double value) {
+        float bracketedValue = (float) Math.max(0.0, Math.min(1.0, value));
+        exoPlayer.setVolume(bracketedValue);
+    }
+
     void seekTo(int location) {
         exoPlayer.seekTo(location);
     }

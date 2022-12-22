@@ -1,6 +1,7 @@
 package com.example.video_player;
 
 import android.content.Context;
+import android.util.LongSparseArray;
 
 import androidx.annotation.NonNull;
 
@@ -42,7 +43,33 @@ import java.util.Map;
 public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPlayerApi {
   private FlutterState flutterState;
   private final static String TAG = "VideoPlayerPlugin";
+  private final LongSparseArray<VideoPlayer> videoPlayers = new LongSparseArray<>();
   private VideoPlayerOptions options = new VideoPlayerOptions();
+
+  public VideoPlayerPlugin() {}
+
+  @SuppressWarnings("deprecation")
+  private VideoPlayerPlugin(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
+    this.flutterState =
+            new FlutterState(
+                    registrar.context(),
+                    registrar.messenger(),
+                    registrar::lookupKeyForAsset,
+                    registrar::lookupKeyForAsset,
+                    registrar.textures());
+    flutterState.startListening(this, registrar.messenger());
+  }
+
+  /** Registers this with the stable v1 embedding. Will not respond to lifecycle events. */
+  @SuppressWarnings("deprecation")
+  public static void registerWith(io.flutter.plugin.common.PluginRegistry.Registrar registrar) {
+    final VideoPlayerPlugin plugin = new VideoPlayerPlugin(registrar);
+    registrar.addViewDestroyListener(
+            view -> {
+              plugin.onDestroy();
+              return false; // We are not interested in assuming ownership of the NativeView.
+            });
+  }
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -66,11 +93,6 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
     initialize();
   }
 
-  @Override
-  public void initialize() {
-
-  }
-
   @NonNull
   @Override
   public Messages.TextureMessage create(@NonNull Messages.CreateMessage arg) {
@@ -80,17 +102,22 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
             new EventChannel(
                     flutterState.binaryMessenger, "flutter.io/videoPlayer/videoEvents" + handle.id());
 
-    // TODO remove test later
-    Map<String, String> httpHeaders = arg.getHttpHeaders();
-    VideoPlayer player =
-            new VideoPlayer(
-                    flutterState.applicationContext,
-                    eventChannel,
-                    handle,
-                    arg.getUri(),
-                    arg.getFormatHint(),
-                    httpHeaders,
-                    options);
+    VideoPlayer player;
+    if (arg.getAsset() != null) {
+      String assetLookupKey;
+      if (arg.getPackageName() != null) {
+        assetLookupKey = flutterState.keyForAssetAndPackageName.get(arg.getAsset(), arg.getPackageName());
+      } else {
+        assetLookupKey = flutterState.keyForAsset.get(arg.getAsset());
+      }
+      player = new VideoPlayer(flutterState.applicationContext, eventChannel, handle, "asset:///" + assetLookupKey, null, null, options);
+
+    } else {
+      @SuppressWarnings("unchecked")
+      Map<String, String> httpHeaders = arg.getHttpHeaders();
+      player = new VideoPlayer(flutterState.applicationContext, eventChannel, handle, arg.getUri(), arg.getFormatHint(), httpHeaders, options);
+    }
+    videoPlayers.put(handle.id(), player);
 
     Messages.TextureMessage textureMessage = new Messages.TextureMessage.Builder().setTextureId(handle.id()).build();
     return textureMessage;
@@ -98,33 +125,42 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
 
   @Override
   public void dispose(@NonNull Messages.TextureMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.dispose();
+    videoPlayers.remove(msg.getTextureId());
   }
 
   @Override
   public void setLooping(@NonNull Messages.LoopingMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.setLooping(msg.getIsLooping());
   }
 
   @Override
   public void setVolume(@NonNull Messages.VolumeMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.setVolume(msg.getVolume());
   }
 
   @Override
   public void setPlaybackSpeed(@NonNull Messages.PlaybackSpeedMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.setPlaybackSpeed(msg.getSpeed());
   }
 
   @Override
   public void play(@NonNull Messages.TextureMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.play();
   }
 
   @NonNull
   @Override
   public Messages.PositionMessage position(@NonNull Messages.TextureMessage msg) {
-    return null;
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    Messages.PositionMessage result = new Messages.PositionMessage.Builder().setPosition(player.getPosition()).setTextureId(msg.getTextureId()).build();
+    player.sendBufferingUpdate();
+    return result;
   }
 
   @NonNull
@@ -135,17 +171,28 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
 
   @Override
   public void seekTo(@NonNull Messages.PositionMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.seekTo(msg.getPosition().intValue());
   }
 
   @Override
   public void pause(@NonNull Messages.TextureMessage msg) {
-
+    VideoPlayer player = videoPlayers.get(msg.getTextureId());
+    player.pause();
   }
 
   @Override
   public void setMixWithOthers(@NonNull Messages.MixWithOthersMessage msg) {
+    options.mixWithOthers = msg.getMixWithOthers();
+  }
 
+  @Override
+  public void initialize() {
+    disposeAllPlayers();
+  }
+
+  private void onDestroy() {
+    disposeAllPlayers();
   }
 
   private interface KeyForAssetFn {
@@ -154,6 +201,14 @@ public class VideoPlayerPlugin implements FlutterPlugin, Messages.AndroidVideoPl
 
   private interface KeyForAssetAndPackageName {
     String get(String asset, String packageName);
+  }
+
+
+  private void disposeAllPlayers() {
+    for (int  i = 0; i < videoPlayers.size(); ++i) {
+      videoPlayers.valueAt(i).dispose();
+    }
+    videoPlayers.clear();
   }
 
   private static final class FlutterState {
